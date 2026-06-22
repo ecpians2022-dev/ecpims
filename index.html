@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,7 +150,7 @@
     <!-- Moving Broadcast Marquee Banner -->
     <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-cyan-500/10 py-1.5 px-6 shadow-md text-[10px] font-black uppercase tracking-wider text-cyan-400 select-none no-print flex items-center justify-between">
       <marquee behavior="scroll" direction="left" scrollamount="5" class="w-full text-slate-100 tracking-widest font-black">
-        ⚡ INVENTORY MANAGEMENT PORTAL <span class="text-cyan-400">★</span> ELECTION COMMISSION OF PAKISTAN <span class="text-cyan-400">★</span> STANDALONE DOWNLOADABLE CLIENT <span class="text-cyan-400">★</span> OFFLINE ENCRYPTED CACHE SYSTEM <span class="text-cyan-400">★</span> LIVE CLOUD CLONE SYNCHRONIZATION ACTIVE
+        Election Commission of Pakistan * Inventory Management Portal
       </marquee>
     </div>
 
@@ -163,11 +164,8 @@
           </div>
           <div>
             <h1 class="text-md sm:text-lg font-black tracking-wider text-white uppercase">
-              ELECTION COMMISSION OF PAKISTAN
+              Election Commission of Pakistan * Inventory Management Portal
             </h1>
-            <p class="text-[9px] font-extrabold text-cyan-400 tracking-widest uppercase">
-              Office Asset tracking Workspace
-            </p>
           </div>
         </div>
 
@@ -801,7 +799,14 @@
       if (savedUser && savedType) {
         authenticatedUser = savedUser;
         authenticatedUserType = savedType;
-        currentSupervisorFilterTarget = savedFilter ? savedFilter : savedUser;
+        
+        if (savedUser === "REC Kohat" || savedType === "SuperAdmin") {
+          currentSupervisorFilterTarget = savedFilter ? savedFilter : savedUser;
+        } else {
+          // DEC users are always authoritatively forced to their own division target!
+          currentSupervisorFilterTarget = savedUser;
+          localStorage.setItem("active_supervisor_filter_offline", savedUser);
+        }
 
         // Set the selector dropdown option to match current filter
         const supFltr = document.getElementById("supervisorFilter");
@@ -1446,7 +1451,7 @@
       const categoryFilter = categoryFilterSelect ? categoryFilterSelect.value : "All";
 
       // Check record edit authorizations
-      const hasWriteAuth = (authenticatedUserType === "SuperAdmin" || authenticatedUser === currentSupervisorFilterTarget);
+      const hasWriteAuth = (authenticatedUserType === "SuperAdmin" || authenticatedUser === "REC Kohat" || authenticatedUser === currentSupervisorFilterTarget);
       const formBlock = document.getElementById("registryInputsFormBlock");
       if (formBlock) {
         if (hasWriteAuth) {
@@ -1976,7 +1981,7 @@
           return;
         }
 
-        if (data && data.length > 0) {
+        if (data) {
           const parsedRecords = data.map(row => ({
             timestampId: row.timestampId || row.timestampid || row.id || Date.now(),
             nodeLocation: row.nodeLocation || row.nodelocation || row.node_location || "",
