@@ -1,296 +1,2127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>Cookie check</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        color-scheme: light dark;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECP Asset Management System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN for lightweight visual metrics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS CDN for excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              905: '#0f172a',
+              850: '#1e293b'
+            }
+          }
+        }
       }
+    }
+  </script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.6);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 0.8);
+    }
 
+    button, select, input {
+      outline: none !important;
+    }
+
+    @media print {
       body {
-        font-family: 'Inter', Helvetica, Arial, sans-serif;
-        background: light-dark(#F8F8F7, #191919);
-        color: light-dark(#1f1f1f, #e3e3e3);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        min-height: 100vh;
-        margin: 0;
-        padding: 20px;
-        text-align: center;
+        background-color: white !important;
+        color: black !important;
       }
+      .no-print {
+        display: none !important;
+      }
+      .print-visible {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500/20 selection:text-cyan-200">
 
-      .container {
-        background: light-dark(#FFFFFF, #1F1F1F);
-        padding: 32px;
-        border-radius: 16px;
-        border: 1px solid light-dark(#E2E3E4, #3E3E3E);
-        max-width: min(80%, 500px);
-        width: 100%;
-        color: light-dark(#2B2D31, #D4D4D4);
-      }
+  <!-- ========================================== -->
+  <!-- LOGIN LAYER SCREEN -->
+  <!-- ========================================== -->
+  <div id="loginWrapper" class="flex flex-col items-center justify-center min-h-screen bg-[#020617] p-4 text-slate-100 relative">
+    <!-- Top Decorative Line -->
+    <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border-b border-blue-500/20 py-2.5 px-6 shadow-lg text-xs font-black uppercase tracking-wider text-cyan-400 select-none flex items-center justify-between no-print">
+      <span>🛡️ SECURITY AUTHORIZED INVENTORY MANAGEMENT PORTAL</span>
+      <span class="text-xs font-mono font-bold text-slate-400">STANDALONE SYSTEM</span>
+    </div>
 
-      h1 {
-        font-size: 20px;
-        font-weight: 500;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-        color: light-dark(#2B2D31, #D4D4D4);
-      }
+    <!-- Login Box -->
+    <div class="w-full max-w-md bg-slate-900/60 border border-slate-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl relative mt-8">
+      
+      <!-- App Identity Logo -->
+      <div class="relative w-20 h-20 mx-auto flex items-center justify-center shrink-0 mb-3">
+        <img src="data:image/jpeg;base64,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" alt="ECP Logo" class="w-20 h-20 object-contain rounded-full border border-slate-700/50 shadow-md">
+      </div>
 
-      p {
-        font-size: 14px;
-        color: light-dark(#2B2D31, #D4D4D4);
-        line-height: 21px;
-        margin: 0 0 1.5rem 0;
-      }
+      <h2 class="text-xl font-black tracking-wide text-white text-center">
+        ELECTION COMMISSION OF PAKISTAN
+      </h2>
+      <p class="text-center text-[10px] text-cyan-500 font-bold tracking-widest uppercase mb-6">
+        Asset Tracking System Portal
+      </p>
 
-      .icon {
-        margin-bottom: 1rem;
-        line-height: 0;
-      }
+      <!-- Recovery Notification Banner -->
+      <div id="loginNoticeBanner" class="bg-blue-500/10 border border-blue-500/20 text-blue-300 p-3 rounded-xl text-xs hidden flex gap-2 items-start leading-relaxed mb-6">
+        <i data-lucide="info" class="w-4 h-4 shrink-0 text-cyan-400 mt-0.5 animate-bounce"></i>
+        <span id="loginNoticeText"></span>
+      </div>
 
-      .button-container {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 2rem;
-      }
-
-      button {
-        background-color: light-dark(#fff, #323232);
-        color: light-dark(#2B2D31, #FCFCFC);
-        border: 1px solid light-dark(#E2E3E4, #3E3E3E);
-        border-radius: 12px;
-        padding: 8px 12px;
-        font-size: 14px;
-        line-height: 21px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        font-weight: 400;
-        font-family: 'Inter', Helvetica, Arial, sans-serif;
-        width: 100%;
-      }
-
-      button:hover {
-        background-color: light-dark(#EAEAEB, #424242);
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      /* Loading Spinner Animation */
-      .spinner {
-        margin: 0 auto 1.5rem auto;
-        width: 40px;
-        height: 40px;
-        border: 4px solid light-dark(#f0f0f0, #262626);
-        border-top: 4px solid light-dark(#076eff, #87a9ff); /* Blue color */
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      .logo {
-        border-radius: 10px;
-        display: block;
-        margin: 0 auto 2rem auto;
-      }
-
-      .logo.hidden {
-        display: none;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <img
-        class="logo"
-        src="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-512dp/logo_ai_studio_color_1x_web_512dp.png"
-        alt="AI Studio Logo"
-        width="256"
-        height="256"
-      />
-      <div class="spinner"></div>
-      <div id="error-ui" class="hidden">
-        <div class="icon">
-          <svg
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="48px"
-            height="48px"
-            fill="#D73A49"
-          >
-            <path
-              d="M12,2C6.486,2,2,6.486,2,12s4.486,10,10,10s10-4.486,10-10S17.514,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z"
-            />
-          </svg>
+      <!-- Credentials Credentials fields -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">
+            Authorized Account Profile:
+          </label>
+          <select id="loginUser" onchange="checkActiveUserRecoveryNoticeStatus()" class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl py-2.5 px-3.5 text-sm text-slate-100 transition-colors cursor-pointer font-bold">
+            <!-- Dynamically populated with office dropdowns -->
+          </select>
         </div>
-        <div id="stepOne" class="text-container">
-          <h1>Action required to load your app</h1>
-          <p>
-            It looks like your browser is blocking a required security cookie, which is common on
-            older versions of iOS and Safari.
-          </p>
-          <div class="button-container">
-            <button id="authInSeparateWindowButton" onclick="redirectToReturnUrl(true)">Authenticate in new window</button>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">
+            Secure Entry Key:
+          </label>
+          <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl py-2.5 px-4 text-sm text-slate-100 placeholder-slate-700 transition-colors font-mono" />
+        </div>
+
+        <button onclick="attemptLogin()" class="w-full bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition-all duration-150 shadow-lg shadow-cyan-500/10 relative overflow-hidden flex items-center justify-center gap-2 cursor-pointer active:scale-98 select-none">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> Sign In to Account
+        </button>
+      </div>
+
+      <div class="flex justify-between items-center text-[10px] pt-4 mt-6 border-t border-slate-800">
+        <button onclick="triggerForgotPassword()" class="text-slate-400 hover:text-cyan-400 font-bold cursor-pointer underline flex items-center gap-1 transition">
+          <i data-lucide="key-round" class="w-3 h-3"></i> Forgot Entry Key?
+        </button>
+        <button onclick="toggleSettingsModal(true)" class="text-slate-400 hover:text-cyan-400 font-bold cursor-pointer underline flex items-center gap-1 transition">
+          <i data-lucide="settings" class="w-3 h-3"></i> Change Key
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MAIN SYSTEM SCREEN -->
+  <!-- ========================================== -->
+  <div id="appWrapper" class="hidden flex-col min-h-screen">
+    <!-- Moving Broadcast Marquee Banner -->
+    <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-cyan-500/10 py-1.5 px-6 shadow-md text-[10px] font-black uppercase tracking-wider text-cyan-400 select-none no-print flex items-center justify-between">
+      <marquee behavior="scroll" direction="left" scrollamount="5" class="w-full text-slate-100 tracking-widest font-black">
+        Election Commission of Pakistan * Inventory Management Portal
+      </marquee>
+    </div>
+
+    <!-- Header Block -->
+    <header class="bg-slate-900 border-b border-slate-800/80 shadow-md">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3.5">
+          <!-- Logo Icon -->
+          <div class="relative w-12 h-12 flex items-center justify-center shrink-0">
+            <img src="data:image/jpeg;base64,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" alt="ECP Logo" class="w-12 h-12 object-contain rounded-full border border-slate-700/50 shadow-md">
+          </div>
+          <div>
+            <h1 class="text-md sm:text-lg font-black tracking-wider text-white uppercase">
+              Election Commission of Pakistan * Inventory Management Portal
+            </h1>
           </div>
         </div>
-        <div id="stepTwo" class="text-container hidden">
-          <h1>Action required to load your app</h1>
-          <p>
-            It looks like your browser is blocking a required security cookie, which is common on
-            older versions of iOS and Safari.
-          </p>
-          <div class="button-container">
-            <button id="interactButton" onclick="redirectToReturnUrl(false)">Close and continue</button>
+
+        <!-- Right User Quick Status bar -->
+        <div class="flex items-center gap-4 no-print select-none">
+          <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+            <i data-lucide="user-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span class="font-bold text-slate-200" id="headerUserDisplay">Super Admin</span>
+            <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 uppercase" id="headerUserBadge">SUPERADMIN</span>
           </div>
+
+          <button onclick="logout()" class="bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/15 py-1.5 px-3 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Logout
+          </button>
         </div>
-        <div id="stepThree" class="text-container hidden">
-          <h1>Almost there!</h1>
-          <p>
-            Grant permission for the required security cookie below.
-          </p>
-          <div class="button-container">
-            <button id="grantPermissionButton" onclick="grantStorageAccess()">Grant permission</button>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-6 space-y-6">
+      
+      <!-- Super Admin Console -->
+      <div id="superAdminConsole" class="hidden bg-slate-900 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 no-print">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+          <div class="flex items-center gap-2 text-cyan-400">
+            <i data-lucide="shield" class="w-5 h-5"></i>
+            <h3 class="text-sm font-black uppercase tracking-wider text-white">Super Admin Command Center</h3>
+          </div>
+          <span class="text-[9px] font-mono text-slate-500">System identities: <span class="text-cyan-400" id="totalUsersCount">0</span> registered offices</span>
+        </div>
+
+        <!-- Pending Recovery Banner -->
+        <div id="activeRecoveryRequestsDashboard" class="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 hidden flex-col gap-3">
+          <div class="flex items-center gap-2 text-amber-400 text-xs font-black uppercase tracking-wider">
+            <i data-lucide="info" class="w-4 h-4 animate-pulse"></i> PENDING ENTRY KEY RESET REQUESTS
+          </div>
+          <div id="recoveryRequestsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: User Creation Form -->
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-850/80 space-y-4">
+            <h4 class="text-xs font-extrabold tracking-wider uppercase text-slate-300">Enroll New Office Account</h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Office/Username Name:</label>
+                <input type="text" id="newAdminUser" placeholder="e.g. DEC Mardan" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white" />
+              </div>
+              <div>
+                <label class="block text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Secure Entry Key:</label>
+                <input type="text" id="newAdminPass" placeholder="e.g. mardan123" class="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white font-mono" />
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+              <div class="flex items-center gap-2">
+                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Account Authority:</span>
+                <select id="newAdminType" class="bg-slate-900 border border-slate-800 text-white rounded-md px-2 py-1 text-[10px] font-bold">
+                  <option value="Standard">Standard Office</option>
+                  <option value="SuperAdmin">Super Admin</option>
+                </select>
+              </div>
+
+              <button onclick="createSystemUserAccount()" class="bg-cyan-600 hover:bg-cyan-500 font-extrabold text-[10px] text-white uppercase tracking-wider px-4 py-2 rounded-lg cursor-pointer transition select-none flex items-center gap-1.5">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Register Account
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Directory Container -->
+          <div class="bg-slate-950 rounded-xl border border-slate-850/80 flex flex-col h-[200px]">
+            <div class="px-4 py-3 bg-slate-900 border-b border-slate-850/80 text-[10px] font-bold text-slate-300 uppercase tracking-wider flex justify-between items-center shrink-0">
+              <span>Security Access Directory</span>
+              <span class="text-[9px] font-mono text-zinc-500">Live Sync</span>
+            </div>
+            <div id="adminUsersRenderContainer" class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-900/60">
+              <!-- Dynamically populated rows -->
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <script>
-      const AUTH_FLOW_TEST_COOKIE_NAME = '__SECURE-aistudio_auth_flow_may_set_cookies';
-      const COOKIE_VALUE = 'true';
 
-      function getCookie(name) {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          let cookie = cookies[i].trim();
-          if (cookie.startsWith(name + '=')) {
-            return cookie.substring(name.length + 1);
+      <!-- Category Filter Box with Workspace selector -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900 p-3.5 rounded-2xl border border-slate-800/80 no-print w-full">
+        <!-- Left Aligned Large Tabs -->
+        <div class="w-full md:flex-1 flex justify-start items-center">
+          <div class="flex items-center bg-slate-950 p-2 rounded-xl border border-slate-850 gap-3 w-full md:w-auto overflow-x-auto shadow-inner justify-start">
+            <button onclick="switchTab('IT')" id="tabBtnIT" class="flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl text-base md:text-lg font-black tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap flex-1 md:flex-none bg-cyan-600 text-white shadow-lg shadow-cyan-500/15 scale-[1.02]">
+              <i data-lucide="laptop" class="w-5.5 h-5.5"></i> IT Equipment
+            </button>
+            <button onclick="switchTab('Furniture')" id="tabBtnFurniture" class="flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl text-base md:text-lg font-black tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap flex-1 md:flex-none text-slate-400 hover:text-white hover:bg-slate-900">
+              <i data-lucide="sofa" class="w-5.5 h-5.5"></i> Furniture Assets
+            </button>
+            <button onclick="switchTab('Misc')" id="tabBtnMisc" class="flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl text-base md:text-lg font-black tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap flex-1 md:flex-none text-slate-400 hover:text-white hover:bg-slate-900">
+              <i data-lucide="package" class="w-5.5 h-5.5"></i> Miscellaneous
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Aligned Sleek small divisional Selector -->
+        <div class="w-full md:w-auto shrink-0 flex justify-end items-center">
+          <div id="supervisorFilterBlock" class="hidden flex items-center gap-2 bg-slate-950/60 border border-slate-800 text-slate-100 py-2.5 px-4 rounded-xl shadow-sm w-full md:w-auto">
+            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest shrink-0 select-none">
+              🔍 Divisional Status:
+            </label>
+            <select id="supervisorFilter" onchange="handleSupervisorFilterChange(this.value)" class="bg-transparent text-xs text-zinc-100 font-black focus:outline-none focus:ring-0 max-w-xs cursor-pointer border-none py-0 pl-1 pr-5">
+              <!-- Offices populated dynamically -->
+            </select>
+          </div>
+          <div id="standardActiveLocationDisplay" class="inline-flex py-2.5 px-4 rounded-xl bg-slate-950/50 text-[11px] font-extrabold text-slate-400 border border-slate-800">
+            📍 active location: &nbsp;<span id="currentNodeLabelDisplay" class="text-blue-400 font-black">REC Kohat</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRINT-ONLY Header Area -->
+      <div class="hidden print:block text-slate-900 mb-6 border-b-2 border-slate-800 pb-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <img src="data:image/jpeg;base64,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" alt="ECP Logo" class="w-16 h-16 object-contain rounded-full border border-slate-300 shadow-sm">
+            <div>
+              <h1 class="text-xl font-black uppercase tracking-wide text-slate-950">
+                Election Commission of Pakistan
+              </h1>
+              <p class="text-xs font-bold text-emerald-700 tracking-widest uppercase">
+                Inventory Tracking System Report
+              </p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-black uppercase tracking-wide text-slate-500 block">
+              Active Location
+            </span>
+            <span id="printActiveLocation" class="text-sm font-black text-blue-700 block mt-0.5">
+              REC Kohat
+            </span>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mt-4 pt-2 border-t border-slate-200 text-xs text-slate-600">
+          <div>
+            Report Category: <strong id="printReportCategory" class="text-slate-900">IT Equipment</strong>
+          </div>
+          <div>
+            Date Generated: <strong id="printReportDate" class="text-slate-900">Generating...</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics summary dashboard -->
+      <div id="metricsDashboardContainer" class="bg-slate-900 border-l-4 border-cyan-500 rounded-r-xl p-5 mb-6 shadow-xl print:bg-white print:border-slate-400 print:shadow-none print:p-3 print:mb-4 print:border-l-2 no-print select-none">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+          <h3 id="metricsDashboardTitle" class="text-base font-bold text-slate-100 flex items-center gap-2 print:text-slate-950 print:text-sm">
+            <i data-lucide="layers" class="w-5 h-5 text-cyan-400 print:hidden"></i>
+            IT Asset Summary Report
+          </h3>
+          
+          <!-- Dynamic & Clickable Live Sync Controllers -->
+          <div class="flex items-center gap-2 print:hidden">
+            <button
+              type="button"
+              id="liveSyncToggleButton"
+              onclick="toggleLiveSyncOffline()"
+              class="text-xs px-2.5 py-1.5 rounded-lg font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border select-none active:scale-95 bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20 shadow-lg shadow-emerald-500/5"
+              title="Click to toggle automatic background synchronization"
+            >
+              <span id="liveSyncToggleDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="liveSyncToggleText">Live Sync: Active</span>
+            </button>
+
+            <button
+              type="button"
+              id="forceInstantSyncButton"
+              onclick="forceSyncOffline()"
+              class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold select-none active:scale-95"
+              title="Force immediate database record synchronization to live dashboard"
+            >
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              Sync Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Main KPI cards grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 print:grid-cols-4 print:gap-3 print:mb-4">
+          <!-- KPI: Total Stock -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center gap-4 print:bg-slate-50 print:border-slate-300 print:p-2.5 print:rounded-lg">
+            <div id="metricsTotalIconContainer" class="p-2.5 rounded-lg bg-cyan-500/5 border border-slate-800 shrink-0 print:hidden">
+              <i data-lucide="package" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider print:text-slate-600 print:text-[9px]">
+                Total Stock Pool
+              </div>
+              <div id="metricsTotalItems" class="text-2xl font-black text-white mt-0.5 print:text-slate-950 print:text-lg font-mono">0</div>
+            </div>
+          </div>
+
+          <!-- KPI: Working (Issued) -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center gap-4 print:bg-slate-50 print:border-slate-300 print:p-2.5 print:rounded-lg">
+            <div class="p-2.5 rounded-lg bg-emerald-500/5 border border-slate-800 shrink-0 print:hidden">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider print:text-slate-600 print:text-[9px]">
+                Working (Issued)
+              </div>
+              <div id="metricsWorkingIssued" class="text-2xl font-black text-white mt-0.5 print:text-slate-950 print:text-lg font-mono">0</div>
+            </div>
+          </div>
+
+          <!-- KPI: Working (In-Stock) -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center gap-4 print:bg-slate-50 print:border-slate-300 print:p-2.5 print:rounded-lg">
+            <div class="p-2.5 rounded-lg bg-blue-500/5 border border-slate-800 shrink-0 print:hidden">
+              <i data-lucide="clipboard-list" class="w-5 h-5 text-blue-400"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider print:text-slate-600 print:text-[9px]">
+                Working (In-Stock)
+              </div>
+              <div id="metricsWorkingInStock" class="text-2xl font-black text-white mt-0.5 print:text-slate-950 print:text-lg font-mono">0</div>
+            </div>
+          </div>
+
+          <!-- KPI: Non-Working -->
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col justify-between print:bg-slate-50 print:border-slate-300 print:p-2.5 print:rounded-lg">
+            <div class="flex items-center gap-4">
+              <div class="p-2.5 rounded-lg bg-rose-500/5 border border-slate-800 shrink-0 print:hidden">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400"></i>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider print:text-slate-600 print:text-[9px]">
+                  Non-Working ⚠️
+                </div>
+                <div id="metricsNonWorking" class="text-2xl font-black text-white mt-0.5 print:text-slate-950 print:text-lg font-mono">0</div>
+              </div>
+            </div>
+            
+            <div class="mt-3 pt-3 border-t border-dashed border-slate-800 grid grid-cols-2 gap-2 text-[10px] text-slate-400 print:border-slate-300 print:text-slate-700 print:mt-1.5 print:pt-1.5 print:text-[8px]">
+              <div class="flex items-center gap-1">
+                <i data-lucide="hammer" class="w-3.5 h-3.5 text-rose-400 shrink-0 print:hidden"></i>
+                <span>Repair: <strong id="metricsRepair" class="text-slate-100 print:text-slate-950">0</strong></span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-amber-400 shrink-0 print:hidden"></i>
+                <span>Condemn: <strong id="metricsCondemn" class="text-slate-100 print:text-slate-950">0</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subcategory Stock Feed list -->
+        <div class="print:mt-2">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-3 print:text-slate-800 print:text-[10px] print:mb-2">
+            <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse print:hidden"></div>
+            Live Asset Category Stock Feed
+          </div>
+          <div id="subcategoryStockFeed" class="flex flex-wrap gap-2">
+            <!-- Dynamic Subcategory Stock count chips -->
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN LEDGER MODULE WORKSPACE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6 print:bg-white print:border-none print:shadow-none print:p-0 print:space-y-4">
+        
+        <!-- Action Header controls -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-slate-800 print:hidden">
+          <div class="flex flex-col gap-1.5">
+            <p class="text-xs text-slate-400">
+              Current Office: <span id="currentOfficeLabelOffline" class="text-blue-400 font-bold">REC Kohat</span>
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2 items-center justify-center">
+            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-98">
+              <i data-lucide="printer" class="w-4 h-4"></i> Print Report
+            </button>
+            <button onclick="exportToExcel()" class="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-98">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel
+            </button>
+            <label class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-100 text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-98">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-slate-300"></i> Import Excel
+              <input type="file" accept=".xlsx, .xls" onchange="importFromExcelOffline(this)" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Input / Modification Registry Form (Inventory Register) -->
+        <form id="registryInputsFormBlock" onsubmit="handleFormSubmitOffline(event)" class="hidden bg-slate-950/60 p-5 rounded-xl border border-slate-800 space-y-4 shadow-sm print:hidden">
+          <div id="formTitleHeader" class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            Inventory Register
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Asset Name</label>
+              <input
+                type="text"
+                id="assetName"
+                placeholder="Asset Name (e.g. Chair, Dell Desktop)"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Serial No / unique identifier</label>
+              <input
+                type="text"
+                id="assetSerial"
+                placeholder="Serial Number Allocation"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Model Specification</label>
+              <input
+                type="text"
+                id="assetModel"
+                placeholder="Model Spec"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Asset Category</label>
+              <select
+                id="assetCategory"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+                required
+              >
+                <option value="">-- Choose Category --</option>
+                <!-- Filled dynamically representing active tab subtypes -->
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Received From</label>
+              <select
+                id="assetReceived"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              >
+                <option value="">Received From</option>
+                <option value="ECP">ECP</option>
+                <option value="PEC">PEC</option>
+                <option value="REC">REC</option>
+                <option value="Gifted">Gifted</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Date Received</label>
+              <input
+                type="date"
+                id="assetDate"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Status Condition</label>
+              <select
+                id="workingStatus"
+                onchange="handleWorkingStatusChangeOffline(this.value)"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+                required
+              >
+                <option value="">-- Status Condition --</option>
+                <option value="Working">Working</option>
+                <option value="Non-Working">Non-Working</option>
+              </select>
+            </div>
+
+            <!-- Conditional State Fields Placement -->
+            <div id="workingTypeFieldsContainer" class="hidden">
+              <label class="block text-xs font-semibold text-slate-400 mb-1 text-emerald-400">Working Allocation Type</label>
+              <select
+                id="workingSubStatus"
+                onchange="handleWorkingSubStatusChangeOffline(this.value)"
+                class="w-full bg-slate-950 border border-emerald-500/30 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              >
+                <option value="">-- Choose Type --</option>
+                <option value="Issued">Issued (Assigned)</option>
+                <option value="In-stock">In-Stock</option>
+              </select>
+            </div>
+
+            <div id="nonWorkingReasonFieldsContainer" class="hidden">
+              <label class="block text-xs font-semibold text-slate-400 mb-1 text-rose-400">Condition Reason</label>
+              <select
+                id="nonWorkingSubStatus"
+                class="w-full bg-slate-950 border border-rose-500/30 focus:border-rose-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              >
+                <option value="">-- Condition Reason --</option>
+                <option value="Needs to repair">Needs to repair</option>
+                <option value="Ready for condemnation">Ready for condemnation</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Inline Assignment Row if working status is working/issued -->
+          <div id="assignmentRowBlock" class="hidden grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-500/5 p-4 rounded-lg border border-emerald-500/20">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Assigned Name</label>
+              <input
+                type="text"
+                id="issueTo"
+                placeholder="Officer / Official Username"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Designation</label>
+              <input
+                type="text"
+                id="designation"
+                placeholder="Officer Designation"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Assignment Date</label>
+              <input
+                type="date"
+                id="issuedDate"
+                class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Observations / Remarks</label>
+            <input
+              type="text"
+              id="remarks"
+              placeholder="Any critical observations or remarks notes (Optional)"
+              class="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:outline-none rounded-lg p-2.5 text-xs text-white"
+            />
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              id="cancelFormBtn"
+              onclick="clearOfflineForm()"
+              class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 text-xs rounded-lg cursor-pointer transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="submitFormBtn"
+              class="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-2.5 text-xs rounded-lg cursor-pointer transition-all flex items-center gap-1.5 shadow-md hover:shadow-green-500/10"
+            >
+              <i data-lucide="plus" class="w-4 h-4"></i> Save Record
+            </button>
+          </div>
+        </form>
+
+        <!-- Ledger Searching & Local Filter UI Bar -->
+        <div class="bg-slate-950/40 p-3.5 rounded-lg border border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
+          <div class="flex items-center gap-2 text-xs text-slate-400 font-bold">
+            <i data-lucide="filter" class="w-4 h-4 text-blue-400"></i> Advanced Ledger Filters:
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full md:w-[60%]">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+              <input
+                type="text"
+                id="ledgerSearchInput"
+                oninput="renderRegistryTable()"
+                placeholder="Search serial, name, specs..."
+                class="w-full bg-slate-900/60 border border-slate-800 rounded-lg py-2 pl-9 pr-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+              />
+            </div>
+
+            <div>
+              <select
+                id="selectedCategoryFilter"
+                onchange="renderRegistryTable()"
+                class="w-full bg-slate-900/60 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 transition-colors"
+              >
+                <option value="All">Filter Category: All Columns</option>
+                <!-- Filled dynamically with category values -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real tabular ledger dataset -->
+        <div class="overflow-x-auto custom-scrollbar border border-slate-800/80 rounded-xl bg-slate-950">
+          <table class="w-full text-left text-xs text-slate-300 min-w-[1100px] border-collapse">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-800 text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                <th class="px-4 py-3">Station Location</th>
+                <th class="px-4 py-3">Asset Name</th>
+                <th class="px-4 py-3">Serial No</th>
+                <th class="px-4 py-3">Model</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">Received From</th>
+                <th class="px-4 py-3">Date Logged</th>
+                <th class="px-4 py-3">Status Condition</th>
+                <th class="px-4 py-3">Assigned To</th>
+                <th class="px-4 py-3">Designation</th>
+                <th class="px-4 py-3">Assignment Date</th>
+                <th class="px-4 py-3">Remarks</th>
+                <th class="px-4 py-3 text-center no-print w-28">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="registryTableBody" class="divide-y divide-slate-900/60 font-medium">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+          <div id="emptyTableState" class="hidden p-12 flex flex-col items-center justify-center text-center gap-3">
+            <i data-lucide="folder-open" class="w-10 h-10 text-slate-600"></i>
+            <span class="text-xs text-slate-500 font-extrabold uppercase">No Inventory Entries Registered inside this Tab</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+
+
+  <!-- ========================================== -->
+  <!-- CHANGE PASSWORD / ACCESS MODAL -->
+  <!-- ========================================== -->
+  <div id="settingsModalWrapper" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 select-none">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden self-center">
+      <div class="px-5 py-4 bg-slate-950 border-b border-slate-850 flex justify-between items-center">
+        <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-4 h-4 text-cyan-400"></i> Change Secure Entry Key
+        </h3>
+        <button onclick="toggleSettingsModal(false)" class="text-slate-400 hover:text-white cursor-pointer transition">
+          <i data-lucide="x" class="w-4.5 h-4.5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Select Profile Account:</label>
+          <select id="changePassUser" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg p-2.5 cursor-pointer">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Verify Old Entry Key:</label>
+          <input type="password" id="oldPassInput" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg p-2.5 focus:border-cyan-500 font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Enter New Entry Key:</label>
+          <input type="password" id="newPassInput" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg p-2.5 focus:border-cyan-500 font-mono" />
+        </div>
+      </div>
+
+      <div class="px-5 py-4 bg-slate-950 border-t border-slate-850 flex justify-end gap-2.5">
+        <button onclick="toggleSettingsModal(false)" class="bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer select-none">
+          Cancel
+        </button>
+        <button onclick="processPasswordMutation()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer select-none">
+          Update Key
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- INTERNAL DATABASE CONTROLS & LOGIC -->
+  <!-- ========================================== -->
+  <script>
+    // System Config
+    const DEFAULT_CREDENTIALS = {
+      "Super Admin": { password: "superadmin123", type: "SuperAdmin", recoveryRequested: false },
+      "REC Kohat": { password: "admin123", type: "Standard", recoveryRequested: false },
+      "DEC Kohat": { password: "kohat123", type: "Standard", recoveryRequested: false },
+      "DEC Hangu": { password: "hangu123", type: "Standard", recoveryRequested: false },
+      "DEC Karak": { password: "karak123", type: "Standard", recoveryRequested: false },
+      "DEC Orakzai": { password: "orakzai123", type: "Standard", recoveryRequested: false },
+      "DEC Kurram": { password: "kurram123", type: "Standard", recoveryRequested: false }
+    };
+
+    const SUBTYPE_OPTIONS_MAP = {
+      "IT": ["Laptop", "Desktop PC", "Laser Printer", "Photocopier", "Scanner", "Network Switch", "UPS System", "Server", "tablet", "other"],
+      "Furniture": ["Executive Chair", "Staff Chair", "Visitor Seat", "Office Table", "Conference Table", "Steel Almarah", "Wooden Rack", "File Cabinet", "sofa Set", "other"],
+      "Misc": ["Heater", "Air Conditioner", "Water Dispenser", "Ceiling Fan", "Fire Extinguisher", "Calculator", "First Aid Box", "Paper Shredder", "other"]
+    };
+
+    // Global application database state variables
+    let systemCredentialsMap = { ...DEFAULT_CREDENTIALS };
+    let databaseStore = [];
+    let preseededTimestamp = 0;
+    
+    let authenticatedUser = "";
+    let authenticatedUserType = "Standard";
+    let currentActiveTab = "IT"; // "IT", "Furniture", "Misc"
+    let currentSupervisorFilterTarget = "REC Kohat";
+
+    // Supabase authentic database credentials client initialization
+    const DB_URL = "https://zxseanhiuuoglxtecuoh.supabase.co";
+    const DB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c2VhbmhpdXVvZ2x4dGVjdW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDEzOTgsImV4cCI6MjA5NzIxNzM5OH0.VjYSKGrUI9nUZS7Idwuy5gCy2j2Sh4zaAVD7WXrjCI8";
+    
+    let dbClientInstance = null;
+    try {
+      if (typeof supabase !== 'undefined') {
+        dbClientInstance = supabase.createClient(DB_URL, DB_KEY);
+      }
+    } catch(err) {
+      console.error("Failed to initialize database client connection:", err);
+    }
+
+    // On Document Load
+    document.addEventListener("DOMContentLoaded", async () => {
+      initializeUserDatabaseStore();
+      
+      // Auto session loader check
+      const savedUser = localStorage.getItem("active_auth_user_offline");
+      const savedType = localStorage.getItem("active_auth_type_offline");
+      const savedFilter = localStorage.getItem("active_supervisor_filter_offline");
+
+      // Always populate dropdown choices at startup to avoid empty option elements
+      populateUIAuthenticationDropdowns();
+
+      if (savedUser && savedType) {
+        authenticatedUser = savedUser;
+        authenticatedUserType = savedType;
+        
+        if (savedUser === "REC Kohat" || savedType === "SuperAdmin") {
+          currentSupervisorFilterTarget = savedFilter ? savedFilter : savedUser;
+        } else {
+          // DEC users are always authoritatively forced to their own division target!
+          currentSupervisorFilterTarget = savedUser;
+          localStorage.setItem("active_supervisor_filter_offline", savedUser);
+        }
+
+        // Set the selector dropdown option to match current filter
+        const supFltr = document.getElementById("supervisorFilter");
+        if (supFltr) supFltr.value = currentSupervisorFilterTarget;
+
+        document.getElementById("loginWrapper").style.display = "none";
+        document.getElementById("appWrapper").style.display = "flex";
+
+        document.getElementById("headerUserDisplay").innerText = authenticatedUser;
+        document.getElementById("headerUserBadge").innerText = authenticatedUserType.toUpperCase();
+        
+        evaluateSuperAdminViewVisibility();
+        switchTab(currentActiveTab);
+      } else {
+        checkActiveUserRecoveryNoticeStatus();
+      }
+
+      // Populate print metadata dates
+      document.getElementById("printReportDate").innerText = new Date().toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // Launch automated live sync background poller cycles
+      updateLiveSyncUI();
+      if (isLiveSyncActive) {
+        await loadInventoryFromSupabase();
+      }
+      
+      setInterval(async () => {
+        if (isLiveSyncActive) {
+          await loadInventoryFromSupabase();
+          if (authenticatedUser) {
+            renderMetricsDashboard();
+            renderRegistryTable();
           }
         }
-        return null;
+      }, 6000);
+
+      // Create initial icons
+      lucide.createIcons();
+    });
+
+    function initializeUserDatabaseStore() {
+      const storedUsers = localStorage.getItem("system_users_db_offline");
+      if (storedUsers) {
+        try {
+          systemCredentialsMap = JSON.parse(storedUsers);
+        } catch(e) {
+          systemCredentialsMap = { ...DEFAULT_CREDENTIALS };
+        }
+      } else {
+        localStorage.setItem("system_users_db_offline", JSON.stringify(DEFAULT_CREDENTIALS));
       }
 
-      function setAuthFlowTestCookie() {
-        // Set the cookie's TTL to 1 minute. This is a short lived cookie because it is only used
-        // when the user does not have an auth token or their auth token needs to be reset.
-        // Making this cookie too long-lived allows the user to get into a state where they can't
-        // mint a new auth token.
-        document.cookie = `${AUTH_FLOW_TEST_COOKIE_NAME}=${COOKIE_VALUE}; Path=/; Secure; SameSite=None; Domain=${window.location.hostname}; Partitioned; Max-Age=60;`;
+      const cachedStore = localStorage.getItem("inventory_db_offline");
+      const cachedTime = localStorage.getItem("inventory_db_offline_timestamp") || 0;
+
+      if (!cachedStore || Number(preseededTimestamp) > Number(cachedTime)) {
+        localStorage.setItem("inventory_db_offline", JSON.stringify(databaseStore));
+        localStorage.setItem("inventory_db_offline_timestamp", preseededTimestamp);
+      } else {
+        try {
+          databaseStore = JSON.parse(cachedStore);
+        } catch(e) {
+          // Keep pre-seeded databaseStore if JSON parsing fails
+        }
+      }
+    }
+
+    function saveUserDatabaseToStorage() {
+      localStorage.setItem("system_users_db_offline", JSON.stringify(systemCredentialsMap));
+    }
+
+    function saveInventoryToFallbackStorage() {
+      localStorage.setItem("inventory_db_offline", JSON.stringify(databaseStore));
+      localStorage.setItem("inventory_db_offline_timestamp", Date.now());
+    }
+
+    function populateUIAuthenticationDropdowns() {
+      const loginUser = document.getElementById("loginUser");
+      const changePassUser = document.getElementById("changePassUser");
+      const supervisorFilter = document.getElementById("supervisorFilter");
+
+      if (!loginUser || !changePassUser || !supervisorFilter) return;
+
+      loginUser.innerHTML = "";
+      changePassUser.innerHTML = "";
+      supervisorFilter.innerHTML = "";
+
+      Object.keys(systemCredentialsMap).forEach(username => {
+        loginUser.innerHTML += `<option value="${username}">${username} (${systemCredentialsMap[username].type === 'SuperAdmin' ? 'Super Admin' : 'Office'})
+</option>`;
+        changePassUser.innerHTML += `<option value="${username}">${username} Profile</option>`;
+
+        if (systemCredentialsMap[username].type === "Standard") {
+          supervisorFilter.innerHTML += `<option value="${username}">${username}</option>`;
+        }
+      });
+
+      // Maintain active selected division
+      if (currentSupervisorFilterTarget) {
+        supervisorFilter.value = currentSupervisorFilterTarget;
+      }
+    }
+
+    async function triggerForgotPassword() {
+      const selectedAccount = document.getElementById("loginUser").value;
+      if (!selectedAccount || !systemCredentialsMap[selectedAccount]) return;
+
+      systemCredentialsMap[selectedAccount].recoveryRequested = true;
+      saveUserDatabaseToStorage();
+      await syncSystemUsersToSupabase(systemCredentialsMap);
+
+      const banner = document.getElementById("loginNoticeBanner");
+      const bannerText = document.getElementById("loginNoticeText");
+
+      bannerText.innerHTML = `🔑 <strong>Recovery Notice:</strong> Password recovery request submitted for <strong>${selectedAccount}</strong>. Please contact the Super Admin to generate your new password.`;
+      banner.classList.remove("hidden");
+      banner.classList.add("flex");
+    }
+
+    function checkActiveUserRecoveryNoticeStatus() {
+      const selectedAccount = document.getElementById("loginUser").value;
+      const banner = document.getElementById("loginNoticeBanner");
+      const bannerText = document.getElementById("loginNoticeText");
+
+      if (selectedAccount && systemCredentialsMap[selectedAccount] && systemCredentialsMap[selectedAccount].recoveryRequested) {
+        bannerText.innerHTML = `🔑 <strong>Recovery Notice:</strong> Password recovery request is active/pending. Please contact the Super Admin to generate your password.`;
+        banner.classList.remove("hidden");
+        banner.classList.add("flex");
+      } else {
+        const bannerEl = document.getElementById("loginNoticeBanner");
+        if (bannerEl) bannerEl.classList.add("hidden");
+      }
+    }
+
+    function toggleSettingsModal(shouldShow) {
+      const el = document.getElementById("settingsModalWrapper");
+      if (shouldShow) {
+        el.classList.remove("hidden");
+        el.classList.add("flex");
+        populateUIAuthenticationDropdowns();
+      } else {
+        el.classList.add("hidden");
+        el.classList.remove("flex");
+      }
+      document.getElementById("oldPassInput").value = "";
+      document.getElementById("newPassInput").value = "";
+    }
+
+    async function processPasswordMutation() {
+      const targetUser = document.getElementById("changePassUser").value;
+      const oldP = document.getElementById("oldPassInput").value;
+      const newP = document.getElementById("newPassInput").value;
+
+      if (!oldP || !newP) {
+        alert("Verification keys must be provided completely.");
+        return;
       }
 
-      /**
-       * Returns true if the test cookie is set, false otherwise.
-       */
-      function authFlowTestCookieIsSet() {
-        return getCookie(AUTH_FLOW_TEST_COOKIE_NAME) === COOKIE_VALUE;
+      if (systemCredentialsMap[targetUser].password !== oldP) {
+        alert("Identity verification Failure: Old Secret Key is invalid.");
+        return;
       }
 
-      /**
-       * Redirects to the return url. If autoClose is true, then the return url will be opened in a
-       * new window, and it will be closed automatically when the page loads.
-       * Options:
-       *   storageAccessGranted: if true, appends __storage_access_granted=1 to
-       *   the return url so the Lua auth script can set the test cookie
-       *   server-side (needed for Safari/iOS where document.cookie is blocked).
-       */
-      async function redirectToReturnUrl(autoClose, storageAccessGranted = false) {
-        const initialReturnUrlStr = new URLSearchParams(window.location.search).get('return_url');
-        const returnUrl = initialReturnUrlStr ? new URL(initialReturnUrlStr) : null;
+      systemCredentialsMap[targetUser].password = newP;
+      systemCredentialsMap[targetUser].recoveryRequested = false;
+      saveUserDatabaseToStorage();
+      await syncSystemUsersToSupabase(systemCredentialsMap);
 
-        // Prevent potentially malicious URLs from being used
-        if (returnUrl.protocol.toLowerCase() === 'javascript:') {
-          console.error('Potentially malicious return URL blocked');
+      populateUIAuthenticationDropdowns();
+      toggleSettingsModal(false);
+      
+      alert(`Password for ${targetUser} updated successfully!`);
+    }
+
+    function attemptLogin() {
+      const user = document.getElementById("loginUser").value;
+      const pass = document.getElementById("loginPass").value;
+
+      if (!systemCredentialsMap[user] || systemCredentialsMap[user].password !== pass) {
+        alert("Unauthorized Access: Authentication credentials mismatch.");
+        return;
+      }
+
+      // Authenticate
+      authenticatedUser = user;
+      authenticatedUserType = systemCredentialsMap[user].type;
+      
+      const firstStandard = Object.keys(systemCredentialsMap).find(u => systemCredentialsMap[u].type === "Standard") || "REC Kohat";
+      currentSupervisorFilterTarget = authenticatedUserType === "SuperAdmin" ? firstStandard : user;
+
+      localStorage.setItem("active_auth_user_offline", authenticatedUser);
+      localStorage.setItem("active_auth_type_offline", authenticatedUserType);
+      localStorage.setItem("active_supervisor_filter_offline", currentSupervisorFilterTarget);
+
+      document.getElementById("loginWrapper").style.display = "none";
+      document.getElementById("appWrapper").style.display = "flex";
+
+      document.getElementById("headerUserDisplay").innerText = authenticatedUser;
+      document.getElementById("headerUserBadge").innerText = authenticatedUserType.toUpperCase();
+      document.getElementById("loginPass").value = "";
+
+      evaluateSuperAdminViewVisibility();
+      switchTab(currentActiveTab);
+      lucide.createIcons();
+    }
+
+    function logout() {
+      authenticatedUser = "";
+      authenticatedUserType = "Standard";
+      localStorage.removeItem("active_auth_user_offline");
+      localStorage.removeItem("active_auth_type_offline");
+      localStorage.removeItem("active_supervisor_filter_offline");
+
+      document.getElementById("loginWrapper").style.display = "flex";
+      document.getElementById("appWrapper").style.display = "none";
+      populateUIAuthenticationDropdowns();
+      checkActiveUserRecoveryNoticeStatus();
+    }
+
+    function evaluateSuperAdminViewVisibility() {
+      const superAdminConsole = document.getElementById("superAdminConsole");
+      if (authenticatedUserType === "SuperAdmin") {
+        superAdminConsole.classList.remove("hidden");
+        renderSuperAdminUserConsoleDirectory();
+        renderSuperAdminActiveRecoveryRequests();
+      } else {
+        superAdminConsole.classList.add("hidden");
+      }
+    }
+
+    function renderSuperAdminUserConsoleDirectory() {
+      const container = document.getElementById("adminUsersRenderContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      Object.keys(systemCredentialsMap).forEach(username => {
+        const profile = systemCredentialsMap[username];
+        const isSelf = username === authenticatedUser;
+        const row = document.createElement("div");
+        row.className = "flex justify-between items-center px-4 py-3 hover:bg-slate-900 transition text-xs";
+        
+        const pendingBadge = profile.recoveryRequested
+          ? `<span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 font-black text-[9px] uppercase animate-pulse">Reset Pending</span>`
+          : "";
+
+        let actionsHtml = "";
+        if (isSelf) {
+          actionsHtml = `<span class="text-slate-500 italic px-2 font-medium">Active Session</span>`;
+        } else {
+          let recoverBtn = "";
+          if (profile.recoveryRequested) {
+            recoverBtn = `
+              <button onclick="handleGenerateNewRecoveredPassword('${username}')" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-md transition cursor-pointer flex items-center gap-1">
+                <i data-lucide="key-round" class="w-3 h-3"></i> Recover
+              </button>
+            `;
+          }
+          actionsHtml = `
+            <div class="flex items-center gap-1.5">
+              ${recoverBtn}
+              <button onclick="deleteSystemUserAccount('${username}')" class="bg-red-500/10 hover:bg-red-500 hover:text-white border border-red-500/20 text-red-400 px-2.5 py-1 rounded-md font-bold cursor-pointer transition flex items-center gap-1.5">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Wipe
+              </button>
+            </div>
+          `;
+        }
+
+        row.innerHTML = `
+          <div class="flex items-center gap-4">
+            <span class="font-bold text-slate-100">${username}</span>
+            <span class="text-slate-550 font-mono flex items-center gap-1">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-600"></i> ${profile.password}
+            </span>
+            ${pendingBadge}
+          </div>
+          <div>
+            ${actionsHtml}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    function renderSuperAdminActiveRecoveryRequests() {
+      const container = document.getElementById("activeRecoveryRequestsDashboard");
+      const grid = document.getElementById("recoveryRequestsGrid");
+      if (!container || !grid) return;
+
+      const activeRequests = Object.entries(systemCredentialsMap).filter(
+        ([_, account]) => account.recoveryRequested
+      );
+
+      if (activeRequests.length > 0) {
+        container.classList.remove("hidden");
+        container.classList.add("flex");
+        grid.innerHTML = "";
+
+        activeRequests.forEach(([username, account]) => {
+          grid.innerHTML += `
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-805 flex items-center justify-between gap-3 text-xs w-full">
+              <div>
+                <div class="font-extrabold text-slate-100">${username}</div>
+                <div class="text-[10px] text-slate-500 font-medium">Requested password reset</div>
+              </div>
+              <button
+                onclick="handleGenerateNewRecoveredPassword('${username}')"
+                class="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold py-1.5 px-3 rounded-md transition-all flex items-center gap-1.5 cursor-pointer select-none"
+              >
+                <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                Generate Password
+              </button>
+            </div>
+          `;
+        });
+        lucide.createIcons();
+      } else {
+        container.classList.add("hidden");
+        container.classList.remove("flex");
+      }
+    }
+
+    async function handleGenerateNewRecoveredPassword(username) {
+      if (authenticatedUserType !== "SuperAdmin") return;
+
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let generatedPass = "ecp";
+      for (let i = 0; i < 5; i++) {
+        generatedPass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      systemCredentialsMap[username] = {
+        ...systemCredentialsMap[username],
+        password: generatedPass,
+        recoveryRequested: false
+      };
+
+      saveUserDatabaseToStorage();
+      await syncSystemUsersToSupabase(systemCredentialsMap);
+
+      populateUIAuthenticationDropdowns();
+      renderSuperAdminUserConsoleDirectory();
+      renderSuperAdminActiveRecoveryRequests();
+
+      alert(`🔑 SUCCESS! Generated new key for [${username}]: "${generatedPass}". Saved & Live-Sync complete.`);
+    }
+
+    async function createSystemUserAccount() {
+      if (authenticatedUserType !== "SuperAdmin") return;
+
+      const username = document.getElementById("newAdminUser").value.trim();
+      const password = document.getElementById("newAdminPass").value.trim();
+      const type = document.getElementById("newAdminType").value;
+
+      if (!username || !password) {
+        alert("Registry values must be entered completely.");
+        return;
+      }
+
+      if (systemCredentialsMap[username]) {
+        alert("Security Conflict: This workspace identity profile account already exists.");
+        return;
+      }
+
+      systemCredentialsMap[username] = { password: password, type: type, recoveryRequested: false };
+      saveUserDatabaseToStorage();
+      await syncSystemUsersToSupabase(systemCredentialsMap);
+      
+      // Reset inputs
+      document.getElementById("newAdminUser").value = "";
+      document.getElementById("newAdminPass").value = "";
+
+      populateUIAuthenticationDropdowns();
+      renderSuperAdminUserConsoleDirectory();
+      
+      alert(`Account profile office for [${username}] registered successfully.`);
+    }
+
+    async function deleteSystemUserAccount(targetUser) {
+      if (authenticatedUserType !== "SuperAdmin") return;
+      if (targetUser === authenticatedUser) {
+        alert("Protection Fault: Cannot remove active session account layer.");
+        return;
+      }
+
+      if (confirm(`Are you sure you want to completely erase the account profile for [${targetUser}]?`)) {
+        delete systemCredentialsMap[targetUser];
+        saveUserDatabaseToStorage();
+        await syncSystemUsersToSupabase(systemCredentialsMap);
+        
+        populateUIAuthenticationDropdowns();
+        renderSuperAdminUserConsoleDirectory();
+        renderSuperAdminActiveRecoveryRequests();
+      }
+    }
+
+    let isLiveSyncActive = localStorage.getItem("offline_live_sync") !== "false";
+
+    function updateLiveSyncUI() {
+      const toggleBtn = document.getElementById("liveSyncToggleButton");
+      const dot = document.getElementById("liveSyncToggleDot");
+      const txt = document.getElementById("liveSyncToggleText");
+      if (!toggleBtn || !dot || !txt) return;
+
+      if (isLiveSyncActive) {
+        toggleBtn.className = "text-xs px-2.5 py-1.5 rounded-lg font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border select-none active:scale-95 bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20 shadow-lg shadow-emerald-500/5";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        txt.innerText = "Live Sync: Active";
+      } else {
+        toggleBtn.className = "text-xs px-2.5 py-1.5 rounded-lg font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border select-none active:scale-95 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
+        dot.className = "w-2 h-2 rounded-full bg-slate-500";
+        txt.innerText = "Live Sync: Paused";
+      }
+    }
+
+    function toggleLiveSyncOffline() {
+      isLiveSyncActive = !isLiveSyncActive;
+      localStorage.setItem("offline_live_sync", isLiveSyncActive);
+      updateLiveSyncUI();
+    }
+
+    async function forceSyncOffline() {
+      const btn = document.getElementById("forceInstantSyncButton");
+      const icon = btn.querySelector("i");
+      if (icon) icon.classList.add("animate-spin");
+      btn.classList.add("text-emerald-400", "border-emerald-500/20");
+      
+      await loadInventoryFromSupabase();
+      renderMetricsDashboard();
+      renderRegistryTable();
+      
+      setTimeout(() => {
+        if (icon) icon.classList.remove("animate-spin");
+        btn.classList.remove("text-emerald-400", "border-emerald-500/20");
+      }, 1000);
+    }
+
+    async function switchTab(tab) {
+      currentActiveTab = tab;
+
+      // Visual configurations
+      const colorMap = {
+        IT: { border: "border-cyan-500", text: "text-cyan-400", bg: "bg-cyan-500/5", color: "bg-cyan-600", shadow: "shadow-cyan-500/15" },
+        Furniture: { border: "border-orange-500", text: "text-orange-400", bg: "bg-orange-500/5", color: "bg-orange-600", shadow: "shadow-orange-500/15" },
+        Misc: { border: "border-purple-500", text: "text-purple-400", bg: "bg-purple-500/5", color: "bg-purple-600", shadow: "shadow-purple-500/15" }
+      };
+
+      const config = colorMap[tab] || colorMap.IT;
+
+      // Update button classes dynamically using tab-specific backgrounds
+      const tabs = ["IT", "Furniture", "Misc"];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn${t}`);
+        if (btn) {
+          if (t === tab) {
+            const cfg = colorMap[t];
+            btn.className = `flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl text-base md:text-lg font-black tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap flex-1 md:flex-none ${cfg.color} text-white shadow-lg ${cfg.shadow} scale-[1.02]`;
+          } else {
+            btn.className = "flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl text-base md:text-lg font-black tracking-wider transition-all duration-200 cursor-pointer whitespace-nowrap flex-1 md:flex-none text-slate-400 hover:text-white hover:bg-slate-900";
+          }
+        }
+      });
+
+      // Update metrics dashboard container styling dynamically
+      const dashboardContainer = document.getElementById("metricsDashboardContainer");
+      if (dashboardContainer) {
+        dashboardContainer.className = `bg-slate-900 border-l-4 ${config.border} rounded-r-xl p-5 mb-6 shadow-xl print:bg-white print:border-slate-400 print:shadow-none print:p-3 print:mb-4 print:border-l-2 no-print select-none`;
+      }
+
+      const dashboardTitle = document.getElementById("metricsDashboardTitle");
+      if (dashboardTitle) {
+        dashboardTitle.innerHTML = `
+          <i data-lucide="layers" class="w-5 h-5 ${config.text} print:hidden"></i>
+          ${tab} Asset Summary Report
+        `;
+      }
+
+      const totalIconContainer = document.getElementById("metricsTotalIconContainer");
+      if (totalIconContainer) {
+        totalIconContainer.className = `p-2.5 rounded-lg ${config.bg} border border-slate-800 shrink-0 print:hidden`;
+        totalIconContainer.innerHTML = `<i data-lucide="package" class="w-5 h-5 ${config.text}"></i>`;
+      }
+
+      // Populate form categories
+      const assetCategorySelect = document.getElementById("assetCategory");
+      if (assetCategorySelect) {
+        assetCategorySelect.innerHTML = '<option value="">-- Choose Category --</option>';
+        const options = SUBTYPE_OPTIONS_MAP[tab] || [];
+        options.forEach(opt => {
+          assetCategorySelect.innerHTML += `<option value="${opt}">${opt}</option>`;
+        });
+      }
+
+      // Populate filter categories dropdown
+      const categoryFilterSelect = document.getElementById("selectedCategoryFilter");
+      if (categoryFilterSelect) {
+        categoryFilterSelect.innerHTML = '<option value="All">Filter Category: All Columns</option>';
+        const options = SUBTYPE_OPTIONS_MAP[tab] || [];
+        options.forEach(opt => {
+          categoryFilterSelect.innerHTML += `<option value="${opt}">${opt}</option>`;
+        });
+      }
+
+      // Reset form on tab change
+      clearOfflineForm();
+
+      // Show/Hide filter block depending on SuperAdmin or Standard context
+      const filterBlock = document.getElementById("supervisorFilterBlock");
+      const locationDisplay = document.getElementById("standardActiveLocationDisplay");
+
+      if (authenticatedUser === "REC Kohat") {
+        if (filterBlock) {
+          filterBlock.classList.remove("hidden");
+          filterBlock.classList.add("flex");
+        }
+        if (locationDisplay) locationDisplay.classList.add("hidden");
+      } else {
+        if (filterBlock) filterBlock.classList.add("hidden");
+        if (locationDisplay) {
+          locationDisplay.classList.remove("hidden");
+          locationDisplay.classList.add("inline-flex");
+        }
+      }
+
+      document.getElementById("currentNodeLabelDisplay").innerText = currentSupervisorFilterTarget;
+      document.getElementById("printActiveLocation").innerText = currentSupervisorFilterTarget;
+      document.getElementById("printReportCategory").innerText = currentActiveTab === "IT" ? "IT Equipment" : currentActiveTab === "Furniture" ? "Furniture Assets" : "Miscellaneous Assets";
+
+      // If live sync is locked/active, do auto cloud poll, otherwise render local cache immediately
+      if (isLiveSyncActive) {
+        await loadInventoryFromSupabase();
+      }
+
+      renderMetricsDashboard();
+      renderRegistryTable();
+    }
+
+    async function handleSupervisorFilterChange(v) {
+      currentSupervisorFilterTarget = v;
+      localStorage.setItem("active_supervisor_filter_offline", v);
+      
+      document.getElementById("currentNodeLabelDisplay").innerText = v;
+      document.getElementById("printActiveLocation").innerText = v;
+
+      if (isLiveSyncActive) {
+        await loadInventoryFromSupabase();
+      }
+
+      renderMetricsDashboard();
+      renderRegistryTable();
+    }
+
+    // Active ledger filter helper
+    function getActiveScopeRecords() {
+      return databaseStore.filter(item => {
+        return item.nodeLocation === currentSupervisorFilterTarget && item.tabContext === currentActiveTab;
+      });
+    }
+
+    function renderMetricsDashboard() {
+      const records = getActiveScopeRecords();
+      
+      const totalStock = records.length;
+      
+      const workingIssued = records.filter(
+        r => r.workingStatus === "Working" && r.workingSubStatus === "Issued"
+      ).length;
+
+      const workingInStock = records.filter(
+        r => r.workingStatus === "Working" && r.workingSubStatus === "In-stock"
+      ).length;
+
+      const nonWorkingCount = records.filter(r => r.workingStatus === "Non-Working").length;
+
+      const needsToRepair = records.filter(
+        r => r.workingStatus === "Non-Working" && r.nonWorkingSubStatus === "Needs to repair"
+      ).length;
+
+      const readyForCondemnation = records.filter(
+        r => r.workingStatus === "Non-Working" && r.nonWorkingSubStatus === "Ready for condemnation"
+      ).length;
+
+      // Update UI elements securely
+      document.getElementById("metricsTotalItems").innerText = totalStock;
+      document.getElementById("metricsWorkingIssued").innerText = workingIssued;
+      document.getElementById("metricsWorkingInStock").innerText = workingInStock;
+      document.getElementById("metricsNonWorking").innerText = nonWorkingCount;
+      document.getElementById("metricsRepair").innerText = needsToRepair;
+      document.getElementById("metricsCondemn").innerText = readyForCondemnation;
+
+      // Update Subcategory Stock Feed list dynamically
+      const subcategoryFeed = document.getElementById("subcategoryStockFeed");
+      if (subcategoryFeed) {
+        subcategoryFeed.innerHTML = "";
+        
+        const categoriesList = {
+          IT: ["Computer", "Laptop", "Printer", "Scanner", "Photo state", "others"],
+          Furniture: ["chair", "table", "sofa set", "tea table", "rack", "almarah", "visitor chair", "other"],
+          Misc: ["Generator", "camera", "water dispenser", "LED", "Fridge", "others"]
+        };
+
+        const colorMap = {
+          IT: { text: "text-cyan-400", bg: "bg-cyan-500/5" },
+          Furniture: { text: "text-orange-400", bg: "bg-orange-500/5" },
+          Misc: { text: "text-purple-400", bg: "bg-purple-500/5" }
+        };
+
+        const config = colorMap[currentActiveTab] || colorMap.IT;
+        const subCats = categoriesList[currentActiveTab] || [];
+
+        subCats.forEach(cat => {
+          const count = records.filter(r => r.category === cat).length;
+          
+          const chip = document.createElement("div");
+          chip.className = "bg-slate-950 border border-slate-800 flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold print:bg-slate-100 print:border-slate-300 print:py-1 print:px-2.5 print:text-[9px]";
+          chip.innerHTML = `
+            <span class="text-slate-300 print:text-slate-900">${cat}</span>
+            <span class="px-2 py-0.5 text-[10px] font-black rounded ${config.bg} ${config.text} border border-slate-800 print:bg-white print:border-slate-300 print:text-slate-950 print:text-[9px]">
+              ${count}
+            </span>
+          `;
+          subcategoryFeed.appendChild(chip);
+        });
+      }
+
+      const numTotalUsers = Object.keys(systemCredentialsMap).filter(u => systemCredentialsMap[u].type === "Standard").length;
+      const totalUsersCounter = document.getElementById("totalUsersCount");
+      if (totalUsersCounter) totalUsersCounter.innerText = numTotalUsers;
+
+      lucide.createIcons();
+    }
+
+    function renderRegistryTable() {
+      const records = getActiveScopeRecords();
+      const tbody = document.getElementById("registryTableBody");
+      const emptyState = document.getElementById("emptyTableState");
+      
+      const searchInput = document.getElementById("ledgerSearchInput");
+      const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+
+      const categoryFilterSelect = document.getElementById("selectedCategoryFilter");
+      const categoryFilter = categoryFilterSelect ? categoryFilterSelect.value : "All";
+
+      // Check record edit authorizations
+      const hasWriteAuth = (authenticatedUserType === "SuperAdmin" || authenticatedUser === "REC Kohat" || authenticatedUser === currentSupervisorFilterTarget);
+      const formBlock = document.getElementById("registryInputsFormBlock");
+      if (formBlock) {
+        if (hasWriteAuth) {
+          formBlock.classList.remove("hidden");
+        } else {
+          formBlock.classList.add("hidden");
+        }
+      }
+
+      tbody.innerHTML = "";
+
+      const filteredRecords = records.filter(item => {
+        const matchesCategory = categoryFilter === "All" || item.category === categoryFilter;
+        
+        const nameMatch = (item.name || '').toLowerCase().includes(searchVal);
+        const serialMatch = (item.serial || '').toLowerCase().includes(searchVal);
+        const modelMatch = (item.model || '').toLowerCase().includes(searchVal);
+        const issueMatch = (item.issueTo || '').toLowerCase().includes(searchVal);
+        const designationMatch = (item.designation || '').toLowerCase().includes(searchVal);
+        const remarksMatch = (item.remarks || '').toLowerCase().includes(searchVal);
+
+        const matchesSearch = nameMatch || serialMatch || modelMatch || issueMatch || designationMatch || remarksMatch;
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filteredRecords.length === 0) {
+        emptyState.classList.remove("hidden");
+      } else {
+        emptyState.classList.add("hidden");
+        
+        filteredRecords.forEach((item, index) => {
+          const row = document.createElement("tr");
+          row.className = "hover:bg-slate-900/30 border-b border-slate-850/60 transition text-slate-100";
+
+          // Working status classes
+          const isWorking = item.workingStatus === "Working";
+          let statusBadge = "";
+          if (isWorking) {
+            statusBadge = `
+              <div class="space-y-1">
+                <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-[9px] uppercase tracking-wide">Working</span>
+                ${item.workingSubStatus ? `<span class="block text-[10px] text-slate-500 font-bold bg-slate-950 px-1 py-0.5 rounded text-center max-w-[80px]">${item.workingSubStatus}</span>` : ""}
+              </div>
+            `;
+          } else {
+            statusBadge = `
+              <div class="space-y-1">
+                <span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold text-[9px] uppercase tracking-wide">Defective</span>
+                ${item.nonWorkingSubStatus ? `<span class="block text-[10px] text-rose-400 font-bold bg-rose-500/5 px-1 py-0.5 rounded text-center border border-rose-500/10">${item.nonWorkingSubStatus}</span>` : ""}
+              </div>
+            `;
+          }
+
+          let actionButtons = "";
+          if (hasWriteAuth) {
+            actionButtons = `
+              <div class="flex items-center justify-center gap-1.5 no-print">
+                <button onclick="openEditAssetRecordDialog('${item.timestampId}')" class="p-1 px-2 text-[10px] text-cyan-400 border border-cyan-500/15 bg-cyan-600/5 hover:bg-cyan-600 hover:text-white cursor-pointer rounded-md transition font-black flex items-center gap-0.5">
+                  <i data-lucide="edit-3" class="w-3 h-3"></i> edit
+                </button>
+                <button onclick="deleteRegistryRecord('${item.timestampId}')" class="p-1 px-2 text-[10px] text-red-400 border border-red-500/15 bg-red-600/5 hover:bg-red-600 hover:text-white cursor-pointer rounded-md transition font-black flex items-center gap-0.5">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i> wipe
+                </button>
+              </div>
+            `;
+          } else {
+            actionButtons = `<span class="text-slate-550 shrink-0 italic text-[10px]">Office Locked</span>`;
+          }
+
+          row.innerHTML = `
+            <td class="px-4 py-3.5 text-xs font-bold text-slate-400 shrink-0 font-mono">${item.nodeLocation || "-"}</td>
+            <td class="px-4 py-3.5 text-xs font-extrabold text-white">${item.name || "-"}</td>
+            <td class="px-4 py-3.5 text-xs text-teal-400 font-black tracking-wide font-mono">${item.serial || "-"}</td>
+            <td class="px-4 py-3.5 text-xs text-slate-300 font-bold">${item.model || "-"}</td>
+            <td class="px-4 py-3.5 text-xs">
+              <span class="bg-slate-800 px-2 py-0.5 rounded text-amber-500 font-medium">${item.category || "-"}</span>
+            </td>
+            <td class="px-4 py-3.5 text-xs text-slate-400">${item.receivedFrom || "-"}</td>
+            <td class="px-4 py-3.5 text-xs font-mono font-bold text-slate-400 whitespace-nowrap">${item.date || item.dateAcquired || "-"}</td>
+            <td class="px-4 py-3.5 text-xs">${statusBadge}</td>
+            <td class="px-4 py-3.5 text-xs font-extrabold text-slate-100">${item.issueTo || "-"}</td>
+            <td class="px-4 py-3.5 text-xs text-slate-400 font-bold">${item.designation || "-"}</td>
+            <td class="px-4 py-3.5 text-xs font-mono font-bold text-slate-400 whitespace-nowrap">${item.issuedDate || "-"}</td>
+            <td class="px-4 py-3.5 text-xs text-slate-400 italic font-medium max-w-[200px] truncate" title="${item.remarks || ""}">${item.remarks || "-"}</td>
+            <td class="px-4 py-3.5 text-center no-print">${actionButtons}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+      lucide.createIcons();
+    }
+
+    function handleWorkingStatusChangeOffline(value) {
+      const workingTypeContainer = document.getElementById("workingTypeFieldsContainer");
+      const nonWorkingContainer = document.getElementById("nonWorkingReasonFieldsContainer");
+      const assignmentBlock = document.getElementById("assignmentRowBlock");
+
+      // Reset fields
+      document.getElementById("workingSubStatus").value = "";
+      document.getElementById("nonWorkingSubStatus").value = "";
+      document.getElementById("issueTo").value = "";
+      document.getElementById("designation").value = "";
+      document.getElementById("issuedDate").value = "";
+
+      if (value === "Working") {
+        workingTypeContainer.classList.remove("hidden");
+        workingTypeContainer.classList.add("block");
+        nonWorkingContainer.classList.add("hidden");
+        nonWorkingContainer.classList.remove("block");
+      } else if (value === "Non-Working") {
+        workingTypeContainer.classList.add("hidden");
+        workingTypeContainer.classList.remove("block");
+        nonWorkingContainer.classList.remove("hidden");
+        nonWorkingContainer.classList.add("block");
+      } else {
+        workingTypeContainer.classList.add("hidden");
+        workingTypeContainer.classList.remove("block");
+        nonWorkingContainer.classList.add("hidden");
+        nonWorkingContainer.classList.remove("block");
+      }
+      assignmentBlock.classList.add("hidden");
+      assignmentBlock.classList.remove("grid");
+    }
+
+    function handleWorkingSubStatusChangeOffline(value) {
+      const assignmentBlock = document.getElementById("assignmentRowBlock");
+      if (value === "Issued") {
+        assignmentBlock.classList.remove("hidden");
+        assignmentBlock.classList.add("grid");
+        
+        document.getElementById("issueTo").required = true;
+        document.getElementById("designation").required = true;
+        document.getElementById("issuedDate").required = true;
+      } else {
+        assignmentBlock.classList.add("hidden");
+        assignmentBlock.classList.remove("grid");
+        
+        document.getElementById("issueTo").required = false;
+        document.getElementById("designation").required = false;
+        document.getElementById("issuedDate").required = false;
+      }
+    }
+
+    function openEditAssetRecordDialog(idStr) {
+      const item = databaseStore.find(r => r.timestampId.toString() === idStr);
+      if (!item) return;
+
+      editingItemId = idStr;
+
+      // Show cancel button
+      document.getElementById("cancelFormBtn").classList.remove("hidden");
+      
+      // Update header and submitBtn text / icons
+      document.getElementById("formTitleHeader").innerText = "Modify/Edit Existing Ledger Entry";
+      document.getElementById("submitFormBtn").innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Apply Updates';
+
+      // Scroll smoothly
+      document.getElementById("registryInputsFormBlock").scrollIntoView({ behavior: 'smooth' });
+
+      // Populate elements
+      document.getElementById("assetName").value = item.name || "";
+      document.getElementById("assetSerial").value = item.serial || "";
+      document.getElementById("assetModel").value = item.model || "";
+      document.getElementById("assetCategory").value = item.category || "";
+      document.getElementById("assetReceived").value = item.receivedFrom || "";
+      document.getElementById("assetDate").value = item.date || item.dateAcquired || "";
+      document.getElementById("workingStatus").value = item.workingStatus || "";
+      
+      const workingTypeContainer = document.getElementById("workingTypeFieldsContainer");
+      const nonWorkingContainer = document.getElementById("nonWorkingReasonFieldsContainer");
+      const assignmentBlock = document.getElementById("assignmentRowBlock");
+
+      if (item.workingStatus === "Working") {
+        workingTypeContainer.classList.remove("hidden");
+        workingTypeContainer.classList.add("block");
+        nonWorkingContainer.classList.add("hidden");
+        nonWorkingContainer.classList.remove("block");
+
+        document.getElementById("workingSubStatus").value = item.workingSubStatus || "";
+        
+        if (item.workingSubStatus === "Issued") {
+          assignmentBlock.classList.remove("hidden");
+          assignmentBlock.classList.add("grid");
+          document.getElementById("issueTo").value = item.issueTo || "";
+          document.getElementById("designation").value = item.designation || "";
+          document.getElementById("issuedDate").value = item.issuedDate || "";
+          
+          document.getElementById("issueTo").required = true;
+          document.getElementById("designation").required = true;
+          document.getElementById("issuedDate").required = true;
+        } else {
+          assignmentBlock.classList.add("hidden");
+          assignmentBlock.classList.remove("grid");
+        }
+      } else if (item.workingStatus === "Non-Working") {
+        workingTypeContainer.classList.add("hidden");
+        workingTypeContainer.classList.remove("block");
+        nonWorkingContainer.classList.remove("hidden");
+        nonWorkingContainer.classList.add("block");
+        
+        document.getElementById("nonWorkingSubStatus").value = item.nonWorkingSubStatus || "";
+        assignmentBlock.classList.add("hidden");
+        assignmentBlock.classList.remove("grid");
+      } else {
+        workingTypeContainer.classList.add("hidden");
+        workingTypeContainer.classList.remove("block");
+        nonWorkingContainer.classList.add("hidden");
+        nonWorkingContainer.classList.remove("block");
+        assignmentBlock.classList.add("hidden");
+        assignmentBlock.classList.remove("grid");
+      }
+
+      document.getElementById("remarks").value = item.remarks || "";
+      
+      lucide.createIcons();
+    }
+
+    function clearOfflineForm() {
+      editingItemId = null;
+      
+      const form = document.getElementById("registryInputsFormBlock");
+      if (form) form.reset();
+
+      // Reset submit Button and header
+      document.getElementById("formTitleHeader").innerText = "Inventory Register";
+      document.getElementById("submitFormBtn").innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Save Record';
+      document.getElementById("cancelFormBtn").classList.add("hidden");
+
+      // Hide conditional blocks
+      document.getElementById("workingTypeFieldsContainer").classList.add("hidden");
+      document.getElementById("workingTypeFieldsContainer").classList.remove("block");
+      document.getElementById("nonWorkingReasonFieldsContainer").classList.add("hidden");
+      document.getElementById("nonWorkingReasonFieldsContainer").classList.remove("block");
+      document.getElementById("assignmentRowBlock").classList.add("hidden");
+      document.getElementById("assignmentRowBlock").classList.remove("grid");
+
+      // Clean required inputs
+      document.getElementById("issueTo").required = false;
+      document.getElementById("designation").required = false;
+      document.getElementById("issuedDate").required = false;
+      
+      lucide.createIcons();
+    }
+
+    async function handleFormSubmitOffline(event) {
+      if (event) event.preventDefault();
+
+      const name = document.getElementById("assetName").value.trim();
+      const serial = document.getElementById("assetSerial").value.trim();
+      const model = document.getElementById("assetModel").value.trim();
+      const category = document.getElementById("assetCategory").value;
+      const receivedFrom = document.getElementById("assetReceived").value;
+      const date = document.getElementById("assetDate").value;
+      const workingStatus = document.getElementById("workingStatus").value;
+      const workingSubStatus = document.getElementById("workingSubStatus").value;
+      const nonWorkingSubStatus = document.getElementById("nonWorkingSubStatus").value;
+      const issueTo = document.getElementById("issueTo").value.trim();
+      const designation = document.getElementById("designation").value.trim();
+      const issuedDate = document.getElementById("issuedDate").value;
+      const remarks = document.getElementById("remarks").value.trim();
+
+      if (!name || !category || !workingStatus) {
+        alert("Validation Fault: Primary parameters values (Name, Category, Status) cannot be left blank.");
+        return;
+      }
+
+      const recordPayload = {
+        nodeLocation: currentSupervisorFilterTarget,
+        tabContext: currentActiveTab,
+        name: name,
+        serial: serial || null,
+        model: model || null,
+        category: category,
+        receivedFrom: receivedFrom || null,
+        date: date || null,
+        workingStatus: workingStatus,
+        workingSubStatus: workingStatus === "Working" ? (workingSubStatus || null) : null,
+        issueTo: (workingStatus === "Working" && workingSubStatus === "Issued") ? (issueTo || null) : null,
+        designation: (workingStatus === "Working" && workingSubStatus === "Issued") ? (designation || null) : null,
+        issuedDate: (workingStatus === "Working" && workingSubStatus === "Issued") ? (issuedDate || null) : null,
+        nonWorkingSubStatus: workingStatus === "Non-Working" ? (nonWorkingSubStatus || null) : null,
+        remarks: remarks || null
+      };
+
+      if (editingItemId) {
+        // Edit mode
+        const index = databaseStore.findIndex(item => item.timestampId.toString() === editingItemId.toString());
+        if (index !== -1) {
+          const updatedRecord = {
+            ...databaseStore[index],
+            ...recordPayload
+          };
+          databaseStore[index] = updatedRecord;
+          saveInventoryToFallbackStorage();
+          await syncRecordToSupabase(updatedRecord);
+          alert("Successful Entry: Asset record changes saved and synchronized.");
+        }
+      } else {
+        // Add mode
+        const newRecord = {
+          timestampId: Date.now(),
+          ...recordPayload
+        };
+        databaseStore.push(newRecord);
+        saveInventoryToFallbackStorage();
+        await syncRecordToSupabase(newRecord);
+        alert("Successful Entry: New Asset item added permanently.");
+      }
+
+      clearOfflineForm();
+      renderMetricsDashboard();
+      renderRegistryTable();
+    }
+
+    async function deleteRegistryRecord(idStr) {
+      if (!confirm("Are you sure you want to permanently erase this asset record? This operation is irreversible.")) {
+        return;
+      }
+
+      const idx = databaseStore.findIndex(r => r.timestampId.toString() === idStr);
+      if (idx === -1) return;
+
+      const item = databaseStore[idx];
+      databaseStore.splice(idx, 1);
+      saveInventoryToFallbackStorage();
+
+      await deleteRecordFromSupabase(item.timestampId);
+
+      renderMetricsDashboard();
+      renderRegistryTable();
+
+      alert("Asset record purged successfully.");
+    }
+
+    function importFromExcelOffline(elem) {
+      const file = elem.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const binary = e.target.result;
+          const workbook = XLSX.read(binary, { type: 'binary', cellDates: true });
+          const sheetName = workbook.SheetNames[0];
+          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+          let addedCount = 0;
+          const activeCategories = SUBTYPE_OPTIONS_MAP[currentActiveTab] || [];
+          
+          for (let idx = 0; idx < rawRows.length; idx++) {
+            const row = rawRows[idx];
+            const nameValue = row["Asset Name"] || row["name"] || row["Name"] || row["Nomenclature"] || "";
+            if (nameValue) {
+              const rawDate = row["Date"] || row["date"] || row["Date Logged"] || row["Date Acquired"] || null;
+              const parsedDate = rawDate ? new Date(rawDate).toISOString().split('T')[0] : null;
+
+              const rawIssuedDate = row["Issued Date"] || row["issuedDate"] || row["Assignment Date"] || null;
+              const parsedIssuedDate = rawIssuedDate ? new Date(rawIssuedDate).toISOString().split('T')[0] : null;
+
+              const record = {
+                timestampId: Date.now() + idx,
+                nodeLocation: currentSupervisorFilterTarget,
+                tabContext: currentActiveTab,
+                name: String(nameValue).trim(),
+                serial: row["Serial No"] || row["serial"] || row["Serial/Tag Number"] || null,
+                model: row["Model"] || row["model"] || row["Model Specifications"] || null,
+                category: row["Category"] || row["category"] || row["Category Subtype"] || activeCategories[0] || "others",
+                receivedFrom: row["Received From"] || row["receivedFrom"] || null,
+                date: parsedDate,
+                workingStatus: (row["Working Status"] || row["workingStatus"] || "Working") === "Working" ? "Working" : "Non-Working",
+                workingSubStatus: row["Working Type"] || row["workingSubStatus"] || row["Working Allocation Type"] || null,
+                issueTo: row["Issue To"] || row["issueTo"] || row["Issued To"] || null,
+                designation: row["Designation"] || row["designation"] || null,
+                issuedDate: parsedIssuedDate,
+                nonWorkingSubStatus: row["Condition Reason"] || row["nonWorkingSubStatus"] || null,
+                remarks: row["Remarks"] || row["remarks"] || null
+              };
+
+              databaseStore.push(record);
+              await syncRecordToSupabase(record);
+              addedCount++;
+            }
+          }
+
+          saveInventoryToFallbackStorage();
+          renderMetricsDashboard();
+          renderRegistryTable();
+          alert(`Successfully imported ${addedCount} rows in offline category.`);
+          elem.value = ""; // Clear file selector
+        } catch (err) {
+          console.error(err);
+          alert("Excel Parsing Failure. Please check columns formatting.");
+        }
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    function exportToExcel() {
+      const records = getActiveScopeRecords();
+      if (records.length === 0) {
+        alert("No entries to export in this tab category!");
+        return;
+      }
+
+      const exportRows = records.map((item, idx) => ({
+        "No.": idx + 1,
+        "Category Subtype": item.category || "",
+        "Nomenclature": item.name || "",
+        "Model Specifications": item.model || "",
+        "Serial/Tag Number": item.serial || "",
+        "Working Status": item.workingStatus || "",
+        "Issued To": item.issueTo || "",
+        "Designation": item.designation || "",
+        "Date Acquired": item.dateAcquired || "",
+        "Remarks": item.remarks || ""
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory List");
+      
+      const fileName = `ECP_Inventory_${currentSupervisorFilterTarget.replace(/\s+/g, "_")}_${currentActiveTab}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    }
+
+
+    // ==========================================
+    // CLOUD REPLICATION DATABASE ENGINE (SUPABASE)
+    // ==========================================
+    let detectedDbColumns = [];
+
+    async function detectDbColumns() {
+      if (!dbClientInstance) return;
+      if (detectedDbColumns && detectedDbColumns.length > 0) return;
+      try {
+        const { data } = await dbClientInstance
+          .from('inventory')
+          .select('*')
+          .limit(1);
+        if (data && data.length > 0) {
+          detectedDbColumns = Object.keys(data[0]);
+          console.log("Standalone dynamic column detection found:", detectedDbColumns);
+        } else {
+          // Fallback to OpenAPI schema fetch
+          const res = await fetch(`${DB_URL}/rest/v1/?apikey=${DB_KEY}`);
+          if (res.ok) {
+            const schema = await res.json();
+            if (schema?.definitions?.inventory?.properties) {
+              detectedDbColumns = Object.keys(schema.definitions.inventory.properties);
+              console.log("Standalone dynamic column detection from schema found:", detectedDbColumns);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to detect database columns dynamically in standalone HTML:", e);
+      }
+    }
+
+    function mapToDbPayload(item) {
+      const payload = {};
+      const fieldMappings = {
+        timestampId: ["timestampid", "timestamp_id", "timestampId", "id"],
+        nodeLocation: ["nodelocation", "node_location", "nodeLocation"],
+        tabContext: ["tabcontext", "tab_context", "tabContext"],
+        name: ["name"],
+        serial: ["serial"],
+        model: ["model"],
+        category: ["category"],
+        receivedFrom: ["receivedfrom", "received_from", "receivedFrom"],
+        date: ["date"],
+        workingStatus: ["workingstatus", "working_status", "workingStatus"],
+        workingSubStatus: ["workingsubstatus", "working_sub_status", "workingSubStatus"],
+        issueTo: ["issueto", "issue_to", "issueTo"],
+        designation: ["designation"],
+        issuedDate: ["issueddate", "issued_date", "issuedDate"],
+        nonWorkingSubStatus: ["nonworkingsubstatus", "non_working_sub_status", "nonWorkingSubStatus"],
+        remarks: ["remarks"]
+      };
+
+      if (!detectedDbColumns || detectedDbColumns.length === 0) {
+        return item;
+      }
+
+      for (const [camelKey, possibleDbKeys] of Object.entries(fieldMappings)) {
+        if (item[camelKey] !== undefined) {
+          const matchedDbKey = possibleDbKeys.find(dbKey => 
+            detectedDbColumns.includes(dbKey) ||
+            detectedDbColumns.some(col => col.toLowerCase() === dbKey.toLowerCase())
+          );
+
+          if (matchedDbKey) {
+            const exactDbKey = detectedDbColumns.find(col => col.toLowerCase() === matchedDbKey.toLowerCase()) || matchedDbKey;
+            payload[exactDbKey] = item[camelKey];
+          } else {
+            payload[possibleDbKeys[0]] = item[camelKey];
+          }
+        }
+      }
+
+      return payload;
+    }
+
+    function getTimestampColKey() {
+      if (!detectedDbColumns || detectedDbColumns.length === 0) return "timestampid";
+      return detectedDbColumns.find(k => 
+        ["timestampid", "timestamp_id", "id", "timestampId"].includes(k.toLowerCase())
+      ) || "timestampid";
+    }
+
+    async function syncSystemUsersToSupabase(users) {
+      if (!dbClientInstance) return;
+      try {
+        await detectDbColumns();
+        const payload = {
+          timestampId: 1,
+          nodeLocation: "SYSTEM_SETTINGS",
+          tabContext: "IT",
+          name: "ACCOUNTS",
+          category: "SYSTEM",
+          workingStatus: "Working",
+          remarks: JSON.stringify(users)
+        };
+
+        const mappedPayload = mapToDbPayload(payload);
+        const timestampColKey = getTimestampColKey();
+
+        const { data } = await dbClientInstance
+          .from('inventory')
+          .select(timestampColKey)
+          .eq(timestampColKey, 1);
+
+        if (data && data.length > 0) {
+          await dbClientInstance
+            .from('inventory')
+            .update(mappedPayload)
+            .eq(timestampColKey, 1);
+        } else {
+          await dbClientInstance
+            .from('inventory')
+            .insert([mappedPayload]);
+        }
+      } catch (err) {
+        console.error("Cloud setting user update error:", err);
+      }
+    }
+
+    async function syncRecordToSupabase(record) {
+      if (!dbClientInstance) return;
+      try {
+        await detectDbColumns();
+        const payload = {
+          timestampId: record.timestampId,
+          nodeLocation: record.nodeLocation,
+          tabContext: record.tabContext,
+          name: record.name,
+          serial: record.serial,
+          model: record.model,
+          workingStatus: record.workingStatus,
+          remarks: record.remarks,
+          category: record.category,
+          issueTo: record.issueTo,
+          designation: record.designation,
+          receivedFrom: record.receivedFrom || null,
+          date: record.date || null,
+          workingSubStatus: record.workingSubStatus || null,
+          issuedDate: record.issuedDate || null,
+          nonWorkingSubStatus: record.nonWorkingSubStatus || null
+        };
+
+        const mappedPayload = mapToDbPayload(payload);
+        const timestampColKey = getTimestampColKey();
+
+        const { data } = await dbClientInstance
+          .from('inventory')
+          .select(timestampColKey)
+          .eq(timestampColKey, record.timestampId);
+
+        if (data && data.length > 0) {
+          await dbClientInstance
+            .from('inventory')
+            .update(mappedPayload)
+            .eq(timestampColKey, record.timestampId);
+        } else {
+          await dbClientInstance
+            .from('inventory')
+            .insert([mappedPayload]);
+        }
+      } catch (err) {
+        console.error("Cloud record sync failed:", err);
+      }
+    }
+
+    async function deleteRecordFromSupabase(timestampId) {
+      if (!dbClientInstance) return;
+      try {
+        await detectDbColumns();
+        const timestampColKey = getTimestampColKey();
+        await dbClientInstance
+          .from('inventory')
+          .delete()
+          .eq(timestampColKey, timestampId);
+      } catch (err) {
+        console.error("Cloud deletion sync failure:", err);
+      }
+    }
+
+    async function loadInventoryFromSupabase() {
+      if (!dbClientInstance) return;
+      try {
+        await detectDbColumns();
+        const { data, error } = await dbClientInstance
+          .from('inventory')
+          .select('*');
+
+        if (error) {
+          console.error("Supabase load query error:", error);
           return;
         }
 
-        if (storageAccessGranted) {
-          returnUrl.searchParams.set('__storage_access_granted', '1');
-        }
+        if (data) {
+          const parsedRecords = data.map(row => ({
+            timestampId: row.timestampId || row.timestampid || row.timestamp_id || row.id || Date.now(),
+            nodeLocation: row.nodeLocation || row.nodelocation || row.node_location || "",
+            tabContext: row.tabContext || row.tabcontext || row.tab_context || "IT",
+            name: row.name || "",
+            serial: row.serial || null,
+            model: row.model || null,
+            workingStatus: row.workingStatus || row.workingstatus || row.working_status || "Working",
+            remarks: row.remarks || null,
+            category: row.category || null,
+            issueTo: row.issueTo || row.issueto || row.issue_to || null,
+            designation: row.designation || null,
+            receivedFrom: row.receivedFrom || row.receivedfrom || row.received_from || null,
+            date: row.date || null,
+            workingSubStatus: row.workingSubStatus || row.workingsubstatus || row.working_sub_status || null,
+            issuedDate: row.issuedDate || row.issueddate || row.issued_date || null,
+            nonWorkingSubStatus: row.nonWorkingSubStatus || row.nonworkingsubstatus || row.non_working_sub_status || null
+          }));
 
-        if (autoClose) {
-          returnUrl.searchParams.set('__auto_close', '1');
-          const url = new URL(window.location.href);
-          url.searchParams.set('return_url', returnUrl.toString());
-          // Land on the cookie check page first, so the user can interact with it before proceeding
-          // to the return url where cookies can be set.
-          window.open(url.toString(), '_blank');
-          const hasAccess = await document.hasStorageAccess();
-          document.querySelector('#stepOne').classList.add('hidden');
-          if (!hasAccess) {
-            document.querySelector('#stepThree').classList.remove('hidden');
-          } else {
-            window.location.reload();
+          // Process credentials synced from cloud settings
+          const settingsRow = parsedRecords.find(r => r.nodeLocation === "SYSTEM_SETTINGS");
+          if (settingsRow && settingsRow.remarks) {
+            try {
+              systemCredentialsMap = JSON.parse(settingsRow.remarks);
+              saveUserDatabaseToStorage();
+              populateUIAuthenticationDropdowns();
+              if (authenticatedUser) {
+                evaluateSuperAdminViewVisibility();
+              }
+              checkActiveUserRecoveryNoticeStatus();
+            } catch(e) {
+              console.error("Failed to parse settings row credentials:", e);
+            }
           }
-        } else {
-          window.location.href = returnUrl.toString();
-        }
-      }
 
-      /**
-       * Grants the browser permission to set cookies. If successful, then it redirects to the
-       * return url.
-       */
-      async function grantStorageAccess() {
-        try {
-          await document.requestStorageAccess();
-          // Recent Safari/iOS versions block document.cookie entirely in
-          // cross-site iframes, even after requestStorageAccess(). Only
-          // server-side Set-Cookie headers work. Signal to the Lua auth script
-          // via query param so it can set the test cookie server-side.
-          redirectToReturnUrl(false, /* storageAccessGranted= */ true);
-        } catch (err) {
-          console.log('error after button click: ', err);
-        }
-      }
+          // Strip system settings row from inventory database lists
+          const actualStoreItems = parsedRecords.filter(r => r.nodeLocation !== "SYSTEM_SETTINGS");
 
-      /**
-       * Verifies that the browser can set cookies. If it can, then it redirects to the return url.
-       * If it can't, then it shows the error UI.
-       */
-      function verifyCanSetCookies() {
-        setAuthFlowTestCookie();
-        if (authFlowTestCookieIsSet()) {
-          // Check if we are on the auto-close flow, and if so show the interact button.
-          const returnUrl = new URLSearchParams(window.location.search).get('return_url');
-          const autoClose = new URL(returnUrl).searchParams.has('__auto_close');
-          if (autoClose) {
-            document.querySelector('#stepOne').classList.add('hidden');
-            document.querySelector('#stepTwo').classList.remove('hidden');
-          } else {
-            redirectToReturnUrl(false);
-            return;
-          }
+          // Authoritative sync: align local store directly with remote snapshot
+          databaseStore = actualStoreItems;
+          saveInventoryToFallbackStorage();
         }
-        // The cookie could not be set, so initiate the recovery flow.
-        document.querySelector('.logo').classList.add('hidden');
-        document.querySelector('.spinner').classList.add('hidden');
-        document.querySelector('#error-ui').classList.remove('hidden');
+      } catch(e) {
+        console.error("Cloud connection processing error:", e);
       }
-
-      // Start the cookie verification process.
-      verifyCanSetCookies();
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
