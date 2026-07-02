@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script id="preseed-database-state">
+  try {
+    const preseededTimestamp = 1782982707778;
+    const cachedTime = localStorage.getItem("inventory_db_timestamp") || 0;
+    if (preseededTimestamp > Number(cachedTime)) {
+      localStorage.setItem("inventory_db", JSON.stringify([]));
+      localStorage.setItem("inventory_db_timestamp", preseededTimestamp.toString());
+      
+      // Also seed offline_db if it uses index_single.html offline variables
+      localStorage.setItem("inventory_db_offline", JSON.stringify([]));
+      localStorage.setItem("inventory_db_offline_timestamp", preseededTimestamp.toString());
+    }
+  } catch (e) {
+    console.error("Offline preseed error:", e);
+  }
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ECP Asset Management System</title>
@@ -73,7 +90,7 @@
       }
     }
   </style>
-</head>
+<script src="/_aistudio-iframe.js"></script></head>
 <body class="bg-[#030712] text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500/20 selection:text-cyan-200">
 
   <!-- ========================================== -->
@@ -764,7 +781,7 @@
     // Global application database state variables
     let systemCredentialsMap = { ...DEFAULT_CREDENTIALS };
     let databaseStore = [];
-    let preseededTimestamp = 0;
+    let preseededTimestamp = 1782982707776;
     
     let authenticatedUser = "";
     let authenticatedUserType = "Standard";
