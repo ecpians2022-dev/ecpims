@@ -1,0 +1,6 @@
+{
+  "name": "Inventory Management System",
+  "description": "An inventory tracking and management portal for divisional and standard accounts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
